@@ -1,5 +1,12 @@
-import { createSlice, PayloadAction, createSelector } from '@reduxjs/toolkit'
+import {
+  createSlice,
+  PayloadAction,
+  createSelector,
+  createAsyncThunk
+} from '@reduxjs/toolkit'
 import { RootState } from '..'
+
+const actionPrefix = 'todos'
 
 export interface Item {
   id: string;
@@ -9,11 +16,26 @@ export interface Item {
 
 interface TodoState {
   items: Item[];
+  isLoading: boolean;
 }
 
+function timeout(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// For fake loading
+const fakeAddLoading = createAsyncThunk(
+  `${actionPrefix}/fakeAddLoading`,
+  async () => {
+    await timeout(500)
+
+    return
+  }
+)
+
 const todoSlice = createSlice({
-  name: 'todos',
-  initialState: { items: [] },
+  name: actionPrefix,
+  initialState: { items: [], isLoading: false },
   reducers: {
     add(state: TodoState, { payload }: PayloadAction<Omit<Item, 'completed'>>) {
       const { id, content } = payload
@@ -25,8 +47,15 @@ const todoSlice = createSlice({
         todo.completed = !todo.completed
       }
     }
+  },
+  extraReducers: {
+    [`${fakeAddLoading.fulfilled}`]: (state: TodoState, { payload }: PayloadAction<string>) => {
+      state.isLoading = false
+    }
   }
 })
+
+
 
 const todoSelector = (state: RootState) => state[TODO]
 const getItems = createSelector(
