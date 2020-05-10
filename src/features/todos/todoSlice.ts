@@ -24,7 +24,7 @@ function timeout(ms: number) {
 }
 
 // For fake loading
-const fakeAddLoading = createAsyncThunk(
+export const fetchTodoList = createAsyncThunk(
   `${actionPrefix}/fakeAddLoading`,
   async () => {
     await timeout(500)
@@ -35,7 +35,7 @@ const fakeAddLoading = createAsyncThunk(
 
 const todoSlice = createSlice({
   name: actionPrefix,
-  initialState: { items: [], isLoading: false },
+  initialState: { items: [], isLoading: true },
   reducers: {
     add(state: TodoState, { payload }: PayloadAction<Omit<Item, 'completed'>>) {
       const { id, content } = payload
@@ -49,7 +49,7 @@ const todoSlice = createSlice({
     }
   },
   extraReducers: {
-    [`${fakeAddLoading.fulfilled}`]: (state: TodoState, { payload }: PayloadAction<string>) => {
+    [`${fetchTodoList.fulfilled}`]: (state: TodoState, { payload }: PayloadAction<string>) => {
       state.isLoading = false
     }
   }
@@ -57,10 +57,15 @@ const todoSlice = createSlice({
 
 
 
-const todoSelector = (state: RootState) => state[TODO]
+const todoSelector = (state: RootState) => state[actionPrefix]
 const getItems = createSelector(
   todoSelector,
   todo => todo.items
+)
+
+const getIsLoading = createSelector(
+  todoSelector,
+  todo => todo.isLoading
 )
 
 // TODO: Implement
@@ -73,6 +78,7 @@ const getItems = createSelector(
 
 export const todoSelectors = {
   items: getItems,
+  isLoading: getIsLoading
 };
 
 export const TODO = todoSlice.name;
